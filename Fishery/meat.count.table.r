@@ -15,6 +15,7 @@ meat.count.table <- function(filenames, path)
   require(textreadr) || stop("Package textreadr cannot be found")
   require(reshape2) || stop("Package reshape2 cannot be found")
   require(plyr) || stop("Package plyr cannot be found")
+  require(dplyr) || stop("Package plyr cannot be found")
   
   #Initiailze some objects.
   txtfile <- NULL
@@ -59,31 +60,31 @@ meat.count.table <- function(filenames, path)
     # Add the bank the the type of vessel.
     txtfile[[i]]$bank <- bank
     if(grepl(fnames[i], pattern="Fzn")) txtfile[[i]]$fleet <- "FT"
+    if(grepl(fnames[i], pattern="Frozen")) txtfile[[i]]$fleet <- "FT"
     if(grepl(fnames[i], pattern="Fsh")) txtfile[[i]]$fleet <- "WF"
-    print(dim(txtfile[[i]])) # Print the progress
+    if(grepl(fnames[i], pattern="Fresh")) txtfile[[i]]$fleet <- "WF"
+    print(i) # Print the progress
   } # end for(i in 1:num.files) 
   # Unwrap the list into a dataframe
+
   txtfiles <- do.call(rbind, txtfile)
   # Make sure the meat counts are numbers and the bank names are in the same case
   txtfiles$mc <- as.numeric(txtfiles$mc)
   txtfiles$bank <- tolower(txtfiles$bank)
   txtfiles$unID <- 1:nrow(txtfiles)
   # Now make a summary table with min/max and mean by banks and fleet, clearly the work of FK and her ddply skills on this one!
-  mctable <- arrange(join(ddply(.data=txtfiles, .(fleet, bank),
-                                summarize,
-                                min=min(mc),
-                                max=max(mc),
-                                mean=mean(mc),
-                                trips=length(unique(unID))), 
-                          ddply(.data=txtfiles, .(bank),
-                                summarize,
-                                min=min(mc),
-                                max=max(mc),
-                                mean=mean(mc),
-                                trips=length(unique(unID)),
-                                fleet="all"),
-                          type="full"),
-                     bank, fleet)
+  mctable1 <- txtfiles %>% group_by(fleet, bank) %>%
+    summarize(min=min(mc),
+              max=max(mc),
+              mean=mean(mc),
+              trips=length(unique(unID)))
+  mctable2 <- txtfiles %>% group_by(bank) %>%
+    summarize(min=min(mc),
+              max=max(mc),
+              mean=mean(mc),
+              trips=length(unique(unID)),
+              fleet="all")
+  mctable <- full_join(mctable1, mctable2) %>% arrange(bank, fleet)    
   
   # Return the pieces of interest
   return(list(meatcounts=txtfiles,

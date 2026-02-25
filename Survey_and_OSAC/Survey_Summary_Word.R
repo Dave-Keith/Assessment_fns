@@ -30,6 +30,7 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
   possiblebanks <- data.frame(banks=c("BBn", "BBs", "Ger", "Mid", "Sab", "GB", "Ban", "BanIce", "GBa", "GBb"),
                                 season=c(rep("spring", 8), rep("summer", 2)))
   bankcheck <- data.frame(banks, year=year)
+  
   bankcheck <- plyr::join(bankcheck, possiblebanks, type="full")
   bankcheck$word[bankcheck$banks=="BBn"] <- "Browns Bank North"
   bankcheck$word[bankcheck$banks=="BBs"] <- "Browns Bank South"
@@ -158,17 +159,18 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
         # ifelse for the wording
     abundPT$word <- ifelse(abundPT$thisyear/abundPT$lastyear >  1.10,
                            "increased",
-                           ifelse(abundPT$thisyear/abundPT$lastyear < 0.90 & abundPT$thisyear/abundPT$lastyear > 0.10,
+                           ifelse(abundPT$thisyear/abundPT$lastyear < 0.90,# & abundPT$thisyear/abundPT$lastyear > 0.10,
                                   "decreased",
-                                  ifelse(abundPT$thisyear/abundPT$lastyear < 0.10 |
+                                  ifelse(#abundPT$thisyear/abundPT$lastyear < 0.10 |
                                            (abundPT$thisyear/abundPT$lastyear > 0.90 &
                                               abundPT$thisyear/abundPT$lastyear < 1.10),
                                          "similar", "other")))
+    
     abundPT$nearLTM <- ifelse(abundPT$thisyear/abundPT$LTM >  1.10,
                               "above",
-                              ifelse(abundPT$thisyear/abundPT$LTM < 0.90 & abundPT$thisyear/abundPT$LTM > 0.10,
+                              ifelse(abundPT$thisyear/abundPT$LTM < 0.90,# & abundPT$thisyear/abundPT$LTM > 0.10,
                                      "below",
-                                     ifelse(abundPT$thisyear/abundPT$LTM < 0.10 |
+                                     ifelse(#abundPT$thisyear/abundPT$LTM < 0.10 |
                                               (abundPT$thisyear/abundPT$LTM > 0.90 &
                                                  abundPT$thisyear/abundPT$LTM < 1.10),
                                             "near", "other")))
@@ -238,18 +240,18 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
     # ifelse for the wording
     bmPT$word <- ifelse(bmPT$thisyear/bmPT$lastyear >  1.10,
                         "increased",
-                        ifelse(bmPT$thisyear/bmPT$lastyear < 0.90 & bmPT$thisyear/bmPT$lastyear > 0.10,
+                        ifelse(bmPT$thisyear/bmPT$lastyear < 0.90,# & bmPT$thisyear/bmPT$lastyear > 0.10,
                                "decreased",
-                               ifelse(bmPT$thisyear/bmPT$lastyear < 0.10 |
+                               ifelse(#bmPT$thisyear/bmPT$lastyear < 0.10 |
                                         (bmPT$thisyear/bmPT$lastyear > 0.90 &
                                            bmPT$thisyear/bmPT$lastyear < 1.10),
                                       "similar", "other")))
 
     bmPT$nearLTM <- ifelse(bmPT$thisyear/bmPT$LTM >  1.10,
                            "above",
-                           ifelse(bmPT$thisyear/bmPT$LTM < 0.90 & bmPT$thisyear/bmPT$LTM > 0.10,
+                           ifelse(bmPT$thisyear/bmPT$LTM < 0.90,# & bmPT$thisyear/bmPT$LTM > 0.10,
                                   "below",
-                                  ifelse(bmPT$thisyear/bmPT$LTM < 0.10 |
+                                  ifelse(#bmPT$thisyear/bmPT$LTM < 0.10 |
                                            (bmPT$thisyear/bmPT$LTM > 0.90 &
                                               bmPT$thisyear/bmPT$LTM < 1.10),
                                          "near", "other")))
@@ -261,11 +263,17 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
 
     # shell height frequencies
     shcols <- paste0("h", 5:200)
-    shsummary <- apply(surv.Rand[banks[i]][[1]][surv.Rand[banks[i]][[1]]$year==year, which(names(surv.Rand[banks[i]][[1]]) %in% shcols)], 2, mean)
-    maxbin <- names(shsummary[shsummary==max(shsummary)])
+    if(banks[i] == "Ger") {
+      row <- which(lined.survey.obj$shf.dat$n.yst[,1]==year)
+      maxbin <- names(which.max(lined.survey.obj$shf.dat$n.yst[row, 2:ncol(lined.survey.obj$shf.dat$n.yst)]))
+    }
+    if(!banks[i] == "Ger") {
+      shsummary <- apply(surv.Rand[banks[i]][[1]][surv.Rand[banks[i]][[1]]$year==year, which(names(surv.Rand[banks[i]][[1]]) %in% shcols)], 2, mean)
+      maxbin <- names(shsummary[shsummary==max(shsummary)])
+    }
     maxbin <- gsub(x=maxbin, "h", "")
     maxbin <- paste0(as.numeric(maxbin)-5, "-", maxbin)
-    if(!banks[i] == "BBs"){
+    if(!banks[i] %in% c("BBs", "Ger")){
       shsummary_LY <- apply(surv.Rand[banks[i]][[1]][surv.Rand[banks[i]][[1]]$year==lastyear, which(names(surv.Rand[banks[i]][[1]]) %in% shcols)], 2, mean)
       maxbin_LY <- names(shsummary_LY[shsummary_LY==max(shsummary_LY)])
       maxbin_LY <- gsub(x=maxbin_LY, "h", "")
@@ -276,7 +284,13 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
       maxbin_LY <- names(shsummary_LY[shsummary_LY==max(shsummary_LY)])
       maxbin_LY <- gsub(x=maxbin_LY, "h", "")
       maxbin_LY <- paste0(as.numeric(maxbin_LY)-5, "-", maxbin_LY)
-      }
+    }
+    if(banks[i] == "Ger") {
+      row <- which(lined.survey.obj$shf.dat$n.yst[,1]==lastyear)
+      maxbin_LY <- names(which.max(lined.survey.obj$shf.dat$n.yst[row, 2:ncol(lined.survey.obj$shf.dat$n.yst)]))
+      maxbin_LY <- gsub(x=maxbin_LY, "h", "")
+      maxbin_LY <- paste0(as.numeric(maxbin_LY)-5, "-", maxbin_LY)
+    }
 
     if(file.exists(paste0(direct, "Data/Survey_data/", year, "/Survey_summary_output/", banks[i], "_figures_res_250-250.Rdata"))){
       load(paste0(direct, "Data/Survey_data/", year, "/Survey_summary_output/", banks[i], "_figures_res_250-250.Rdata"))
@@ -370,11 +384,11 @@ Survey_Summary_Word <- function(year=2017, reportseason="spring", subarea=F, dat
       shf.ty$bin <- seq(0,195,5)
       shf.ty$size <- cut(shf.ty$bin, c(0,size$RS, size$CS, 200), include.lowest = T, right = F)
       sizeclass <- data.frame(size=unique(shf.ty$size), class=c("PR", "Rec", "FR"))
-      shf.ty <- join(shf.ty, sizeclass, type="full")
+      shf.ty <- plyr::join(shf.ty, sizeclass, type="full")
       names(shf.ty) <- c("npertow", "bin", "size", "class")
       expanded <- shf.ty[rep(seq_len(nrow(shf.ty)), shf.ty$npertow), 1:2]
       #hist(expanded$bin)
-      expanded <- join(expanded, shf.ty[, c("bin", "class")])
+      expanded <- plyr::join(expanded, shf.ty[, c("bin", "class")])
       sevfiveperc <- c(quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[1], quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[3])
       sizerange75[paste0(y)] <- paste0(round_any(sevfiveperc[1], 5), "-", round_any(sevfiveperc[2], 5))
       sevfivepercPR <- c(quantile(x=expanded$bin[expanded$class %in% c("PR")], c(0.125, 0.5, 0.875, 1))[1], quantile(x=expanded$bin[expanded$class %in% c("PR")], c(0.125, 0.5, 0.875, 1))[3])
@@ -438,7 +452,6 @@ if(banks[i] == "GB") mcreg <- fish.reg$MC_reg[fish.reg$Bank=="GBa" & fish.reg$ye
     highlights <- rbind(highlights, towsummary)
 
     # mwsh and cf
-
     if(banks[i] %in% c("GBa", "GB")) fittedmw100mm <- 1^SpatHtWt.fit[banks[i]][[1]]$B * SpatHtWt.fit[banks[i]][[1]]$A
     if(!banks[i] %in% c("GBa", "GB")) {
       slope <- cf.data[[banks[i]]]$CF.fit$mw.sh.coef %>% dplyr::filter(year == yr) %>% dplyr::pull(fix.slope); slope <- slope[1]
@@ -478,7 +491,7 @@ if(banks[i] == "GB") mcreg <- fish.reg$MC_reg[fish.reg$Bank=="GBa" & fish.reg$ye
 
     if(banks[i] %in% "BBs"){
 
-      cf_ltm <- median(cfdat$CF[!is.na(cfdat$year)])
+      cf_ltm <- median(cfdat$CF[!is.na(cfdat$CF)])
 
       cf <- data.frame(variable=c("CF",
                                   "spatialCF",
@@ -737,11 +750,11 @@ spatial.sum.stats$cf <- rbind(spatial.sum.stats$cf, spatial.sum.stats.c)
                shf.ty$bin <- seq(0,195,5)
                shf.ty$size <- cut(shf.ty$bin, c(0,size$RS, size$CS, 200), include.lowest = T, right = F)
                sizeclass <- data.frame(size=unique(shf.ty$size), class=c("PR", "Rec", "FR"))
-               shf.ty <- join(shf.ty, sizeclass, type="full")
+               shf.ty <- plyr::join(shf.ty, sizeclass, type="full")
                names(shf.ty) <- c("npertow", "bin", "size", "class")
                expanded <- shf.ty[rep(seq_len(nrow(shf.ty)), shf.ty$npertow), 1:2]
                #hist(expanded$bin)
-               expanded <- join(expanded, shf.ty[, c("bin", "class")])
+               expanded <- plyr::join(expanded, shf.ty[, c("bin", "class")])
 
                sevfiveperc <- c(quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[1], quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[3])
                sizerange75_seed_y[paste0(y)] <- paste0(round_any(sevfiveperc[1], 5), "-", round_any(sevfiveperc[2], 5))
@@ -755,12 +768,12 @@ spatial.sum.stats$cf <- rbind(spatial.sum.stats$cf, spatial.sum.stats.c)
                shf.bm.ty$bin <- seq(0,195,5)
                shf.bm.ty$size <- cut(shf.bm.ty$bin, c(0,size$RS, size$CS, 200), include.lowest = T, right = F)
                sizeclass <- data.frame(size=unique(shf.bm.ty$size), class=c("PR", "Rec", "FR"))
-               shf.bm.ty <- join(shf.bm.ty, sizeclass, type="full")
+               shf.bm.ty <- plyr::join(shf.bm.ty, sizeclass, type="full")
                names(shf.bm.ty) <- c("npertow", "bin", "size", "class")
                shf.bm.ty <- shf.bm.ty[shf.bm.ty$bin > 60,]
                shf.bm.ty$npertow[is.na(shf.bm.ty$npertow)] <- 0
                expanded <- shf.bm.ty[rep(seq_len(nrow(shf.bm.ty)), shf.bm.ty$npertow), 1:2]
-               expanded <- join(expanded, shf.bm.ty[, c("bin", "class")])
+               expanded <- plyr::join(expanded, shf.bm.ty[, c("bin", "class")])
                #hist(expanded$bin)
                sevfiveperc <- c(quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[1], quantile(x=expanded$bin, c(0.125, 0.5, 0.875, 1))[3])
                sizerange75_seed_bm_y[paste0(y)] <- paste0(round_any(sevfiveperc[1], 5), "-", round_any(sevfiveperc[2], 5))

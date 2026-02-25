@@ -1,26 +1,35 @@
 #### PRE-LOADING OFFSHORE SCALLOP SURVEY DATA CHECKS
-
+#### Help is here: Y:\Offshore\Assessment\Non-Github archive and documentation\Help and Documentation/loading_to_scaloff_checks.pptx
 #### set up directory, year, cruise info...
 
-direct_fns <- "C:/Users/keyserf/Documents/Github/Assessment_fns/"
-year <- 2024
-cruise <- "LE20"
-
-#### First, check the data file-by-file (by bank) using scaloff_bank_check.R
-### Step 1: Load the scaloff_bank_check function
-source(paste0(direct_fns, "Survey_and_OSAC/scaloff_bank_check.R"))
 
 direct <- "Y:/Offshore/Assessment/"
+direct_fns <- "C:/Users/keyserf/Documents/Github/Assessment_fns/"
+year <- 2025
+cruise <- "LE22"
+
+#### First, check the data file-by-file (by bank) using scaloff_bank_check.R
+### Step 1: Load the scaloff_bank_check function 
+# source locally, 
+source(paste0(direct_fns, "Survey_and_OSAC/scaloff_bank_check.R"))
+# OR FROM GITHUB:
+fun <- "https://raw.githubusercontent.com/Mar-Scal/Assessment_fns/master/Survey_and_OSAC/scaloff_bank_check.R"
+dir <- tempdir()
+temp <- dir
+download.file(fun,destfile = paste0(dir, "\\", basename(fun)))
+source(paste0(dir,"/",basename(fun)))
+file.remove(paste0(dir,"/",basename(fun)))
 
 # Make sure CSV files are saved as CSV (Comma Delimited) (*.csv) (NOT UTF-8)
+# Do not open CSV files in Excel after initial creation from XLSX file. Date format will be ruined, and you'll have to do it again.
 
 ### Step 2: Run the function with the various arguments you need:
 scaloff_bank_check(direct = direct,  direct_fns=direct_fns, year = year, type = "csv", 
-                   spatialplot = F, assign.strata=F, # NOTE: spatialplot must be T for assign.strata to work
-                   cruise = cruise, bank = "GBa", survey_name = "GB2024.2", 
-                   olex.csv = "Olex_distance_coefficients_GBaGBb_2024_FK.csv",
-                   tow=T, hf = F, mwsh = F, un=un.ID, pwd.ID=pw, # if hf is T, tow must also be T
-                   nickname = ".GBaLE20")
+                   spatialplot = T, assign.strata=T, # NOTE: spatialplot must be T for assign.strata to work
+                   cruise = cruise, bank = "GBa", survey_name = "GB2025.2", 
+                    olex.csv = "Olex_distance_coefficientsGBa2025.csv",
+                   tow=T, hf = T, mwsh = T, un=un.ID, pwd.ID=pw, # if hf is T, tow must also be T
+                   nickname = ".GBaLE22")
 
 ### Step 3: Scroll through the output and read the error messages to look at issues. Be thorough!
 ### For GB monitoring survey (spring), warnings like "the condition has length > 1 and only the first element will be used" are ok
@@ -42,21 +51,28 @@ scaloff_bank_check(direct = direct,  direct_fns=direct_fns, year = year, type = 
 
 ### Step 7: Once you've checked/fixed the files for each individual bank, use scaloff_cruise_check function to check data BETWEEN banks.
 ### Start by setting up some variables and loading in the function
-year <- 2024
-cruise <- "LE20"
+year <- 2025
+cruise <- "LE22"
+direct <- "Y:/Offshore/Assessment/"
 
+#source from Local:
 direct_fns <- "./"
 source(paste0(direct_fns, "Survey_and_OSAC/scaloff_cruise_check.R"))
-
-direct <- "Y:/Offshore/Assessment/"
+# OR FROM GITHUB:
+fun <- "https://raw.githubusercontent.com/Mar-Scal/Assessment_fns/master/Survey_and_OSAC/scaloff_cruise_check.R"
+dir <- tempdir()
+temp <- dir
+download.file(fun,destfile = paste0(dir, "\\", basename(fun)))
+source(paste0(dir,"/",basename(fun)))
+file.remove(paste0(dir,"/",basename(fun)))
 
 ### Step 8: Run the function with the various arguments you need:
 scaloff_cruise_check(year=year, direct=direct, direct_fns=direct_fns,
                      type="csv", 
-                     cruise=c("LE20"), season="summer")
+                     cruise=c("LE22"), season="summer")
 
 ### Step 9: Scroll through the output and make sure it's all logical. 
 ### The last line should read: Successfully passed duplicate tow check without any issues. Yay!
-### If it doesn't the duplicate tow check did not occur as expected. Look inside scalloff_cruise_check.R
+### If it doesn't the duplicate tow check did not occur as expected. Look inside scaloff_cruise_check.R
 
 
